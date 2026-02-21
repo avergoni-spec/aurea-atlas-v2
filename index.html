@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurea Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --card: #141414;
+    --border: rgba(201,169,110,0.12);
+    --gold: #c9a96e;
+    --gold2: #e8cc8f;
+    --text: #f0ece4;
+    --muted: rgba(240,236,228,0.42);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #050505;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px 60px;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ── PHONE FRAME ── */
+  .phone-frame {
+    width: 393px;
+    background: var(--bg);
+    border-radius: 54px;
+    border: 10px solid #181818;
+    box-shadow:
+      0 0 0 1px #2a2510,
+      0 0 60px rgba(201,169,110,0.08),
+      0 40px 120px rgba(0,0,0,0.95),
+      inset 0 0 0 1px rgba(201,169,110,0.04);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .notch {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 37px; background: #181818;
+    border-radius: 0 0 24px 24px; z-index: 200;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .notch-sensor { width: 40px; height: 6px; background: #0d0d0d; border-radius: 3px; }
+  .notch-cam { width: 12px; height: 12px; background: #0d0d0d; border-radius: 50%; border: 2px solid #252525; }
+
+  .status-bar {
+    height: 52px; padding: 14px 28px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 10;
+  }
+  .status-time { font-size: 0.82rem; font-weight: 500; color: var(--text); }
+  .status-icons { display: flex; gap: 6px; align-items: center; color: var(--text); font-size: 0.7rem; }
+
+  .app-content { background: var(--bg); overflow: hidden; height: 800px; position: relative; }
+
+  /* Gold atmospheric glow */
+  .app-content::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 35% at 50% 0%, rgba(201,169,110,0.07) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 30% at 80% 100%, rgba(201,169,110,0.04) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .scroll-area { height: 100%; overflow-y: auto; scrollbar-width: none; position: relative; z-index: 1; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* ── HEADER with LOGO ── */
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  /* Logo SVG inline */
+  .logo-wrap {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .logo-circle {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+    box-shadow: 0 0 12px rgba(201,169,110,0.15);
+    flex-shrink: 0;
+  }
+
+  .logo-a {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .logo-text {
+    display: flex; flex-direction: column;
+  }
+
+  .logo-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+
+  .logo-name span { color: var(--gold); }
+
+  /* Language pills */
+  .lang-row { display: flex; gap: 4px; }
+  .lang-pill {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,169,110,0.15);
+    border-radius: 100px;
+    color: var(--muted);
+    font-size: 0.58rem; font-weight: 500;
+    padding: 3px 7px;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.03em;
+  }
+  .lang-pill.active { background: var(--gold); color: #080808; border-color: var(--gold); }
+
+  /* ── SEARCH SECTION ── */
+  .search-section { padding: 20px 18px 6px; }
+
+  .search-wrap {
+    display: flex; align-items: center;
+    background: var(--surface);
+    border: 1px solid rgba(201,169,110,0.35);
+    border-radius: 18px;
+    padding: 5px 5px 5px 18px;
+    box-shadow: 0 0 0 3px rgba(201,169,110,0.06), 0 8px 32px rgba(0,0,0,0.4);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .search-icon { font-size: 0.85rem; margin-right: 10px; opacity: 0.45; flex-shrink: 0; }
+
+  .search-text {
+    border: none; outline: none; background: transparent;
+    flex: 1;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem; color: var(--text);
+    padding: 9px 0;
+    font-style: italic;
+  }
+
+  .cursor { display: inline-block; animation: blink 1s step-end infinite; color: var(--gold); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .search-btn {
+    background: var(--gold);
+    border-radius: 13px; color: #080808;
+    font-size: 0.7rem; font-weight: 500;
+    padding: 11px 16px; letter-spacing: 0.08em;
+    font-family: 'DM Sans', sans-serif;
+    text-transform: uppercase; white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Tagline */
+  .tagline {
+    text-align: center;
+    padding: 10px 18px 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  /* Quick search pills */
+  .pills-row {
+    display: flex; gap: 7px; padding: 10px 18px 16px;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .pills-row::-webkit-scrollbar { display: none; }
+  .pill {
+    background: none;
+    border: 1px solid rgba(201,169,110,0.15);
+    border-radius: 100px;
+    color: var(--muted);
+    font-size: 0.63rem; padding: 5px 13px;
+    white-space: nowrap; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .pill:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Divider */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(201,169,110,0.3), transparent);
+    margin: 0 18px;
+  }
+
+  /* ── RESULTS HEADER ── */
+  .result-header { text-align: center; padding: 16px 18px 12px; }
+  .result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 300; color: var(--text);
+    margin-bottom: 4px;
+  }
+  .result-title span { color: var(--gold); font-style: italic; }
+  .result-meta {
+    font-size: 0.6rem; color: var(--muted);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+
+  /* ── CAT TABS ── */
+  .cat-tabs { display: flex; padding: 0 18px; gap: 7px; margin-bottom: 14px; }
+  .cat-tab {
+    flex: 1; text-align: center; padding: 8px 4px;
+    border-radius: 12px; font-size: 0.6rem; font-weight: 500;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    background: rgba(255,255,255,0.03);
+    color: var(--muted);
+    border: 1px solid rgba(201,169,110,0.1);
+    cursor: pointer;
+  }
+  .cat-tab.active {
+    background: rgba(201,169,110,0.1);
+    color: var(--gold);
+    border-color: rgba(201,169,110,0.3);
+  }
+  .cat-tab-icon { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+
+  /* ── CARDS ── */
+  .cards-section { padding: 0 18px 30px; }
+  .section-label {
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 10px; margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-top: 18px;
+  }
+  .section-label:first-child { margin-top: 0; }
+  .sec-icon { font-size: 0.82rem; }
+  .sec-title { font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid rgba(201,169,110,0.09);
+    border-radius: 16px; margin-bottom: 9px;
+    position: relative; overflow: hidden;
+    cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+  }
+  .card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--gold), var(--gold2));
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .card:hover { border-color: rgba(201,169,110,0.28); transform: translateX(3px); }
+  .card:hover::before { opacity: 1; }
+  .card:active { transform: scale(0.98); }
+
+  .card-photo { width: 100%; height: 95px; position: relative; overflow: hidden; }
+  .card-photo-placeholder { width:100%; height:95px; background:linear-gradient(135deg,#0f0d08 0%,#1c1608 50%,#0f0d08 100%); }
+  .card-photo img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.78); transition: transform 0.5s; }
+  .card:hover .card-photo img { transform: scale(1.05); }
+  .card-photo-overlay { position: absolute; bottom: 0; left: 0; right: 0; height: 55px; background: linear-gradient(transparent, rgba(8,8,8,0.92)); }
+  .card-photo-badge {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(8,8,8,0.7); backdrop-filter: blur(8px);
+    border-radius: 6px; padding: 3px 8px;
+    font-size: 0.58rem; color: var(--gold);
+    border: 1px solid rgba(201,169,110,0.3);
+  }
+
+  .card-body { padding: 10px 14px 12px; }
+  .card-num { font-family: 'Cormorant Garamond', serif; font-size: 0.6rem; color: var(--gold); opacity: 0.6; margin-bottom: 2px; }
+  .card-name { font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; font-weight: 600; color: var(--text); line-height: 1.25; margin-bottom: 2px; }
+  .card-sub { font-size: 0.65rem; color: var(--muted); margin-bottom: 3px; }
+  .card-stars { font-size: 0.6rem; color: var(--gold); margin-bottom: 3px; }
+  .card-desc { font-size: 0.68rem; color: rgba(240,236,228,0.42); line-height: 1.55; }
+  .card-tag { display: inline-block; background: rgba(201,169,110,0.08); border: 1px solid rgba(201,169,110,0.18); border-radius: 5px; padding: 2px 7px; font-size: 0.57rem; color: var(--gold); margin-top: 5px; }
+
+  .tap-hint { text-align: center; font-size: 0.62rem; color: rgba(201,169,110,0.45); padding: 4px 0 10px; letter-spacing: 0.06em; animation: hint-fade 2.5s ease-in-out infinite; }
+  @keyframes hint-fade { 0%,100%{opacity:0.3} 50%{opacity:0.9} }
+
+  /* ── OVERLAY & BOTTOM SHEET ── */
+  .overlay { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.75); z-index: 50; backdrop-filter: blur(4px); }
+  .overlay.show { display: block; }
+
+  .bottom-sheet {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #0f0f0f;
+    border-radius: 28px 28px 0 0;
+    z-index: 100; transform: translateY(100%);
+    transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+    border-top: 1px solid rgba(201,169,110,0.2);
+    max-height: 94%; overflow-y: auto; scrollbar-width: none;
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.8);
+  }
+  .bottom-sheet::-webkit-scrollbar { display: none; }
+  .bottom-sheet.open { transform: translateY(0); }
+
+  .sheet-handle { width: 36px; height: 3px; background: rgba(201,169,110,0.25); border-radius: 2px; margin: 14px auto 0; }
+
+  .sheet-photo { width: 100%; height: 185px; position: relative; overflow: hidden; margin-top: 14px; }
+  .sheet-photo img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.75); }
+  .sheet-photo-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 35%, rgba(15,15,15,0.97) 100%); }
+  .photo-badge { position: absolute; top: 12px; right: 14px; background: rgba(201,169,110,0.95); border-radius: 8px; padding: 4px 11px; font-size: 0.63rem; font-weight: 500; color: #080808; letter-spacing: 0.04em; }
+  .photo-dots { position: absolute; bottom: 10px; left: 14px; display: flex; gap: 4px; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.25); }
+  .dot.active { background: var(--gold); width: 14px; border-radius: 3px; }
+
+  .sheet-body { padding: 18px 20px 0; }
+  .sheet-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .sheet-name { font-family: 'Cormorant Garamond', serif; font-size: 1.28rem; font-weight: 600; color: var(--text); line-height: 1.2; flex: 1; margin-right: 10px; }
+  .sheet-stars { font-size: 0.72rem; color: var(--gold); padding-top: 3px; white-space: nowrap; }
+  .sheet-type { font-size: 0.68rem; color: var(--muted); margin-bottom: 10px; }
+  .sheet-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sh-tag { background: rgba(201,169,110,0.08); border: 1px solid rgba(201,169,110,0.2); border-radius: 6px; padding: 3px 9px; font-size: 0.6rem; color: var(--gold); }
+
+  .info-section { background: #141414; border: 1px solid rgba(201,169,110,0.1); border-radius: 14px; overflow: hidden; margin-bottom: 12px; }
+  .info-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid rgba(201,169,110,0.07); }
+  .info-row:last-child { border-bottom: none; }
+  .info-icon { font-size: 0.9rem; width: 20px; text-align: center; flex-shrink: 0; }
+  .info-label { font-size: 0.56rem; color: rgba(240,236,228,0.28); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1px; }
+  .info-value { font-size: 0.77rem; color: var(--text); }
+  .info-value.green { color: #7ec97e; }
+
+  /* OSM iframe map */
+  .map-section { margin-bottom: 12px; }
+  .map-label { font-size: 0.56rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(240,236,228,0.28); margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
+  .map-label span { color: var(--gold); }
+  #osm-map { width: 100%; height: 130px; border-radius: 14px; border: 1px solid rgba(201,169,110,0.12); overflow: hidden; display: block; }
+  .map-credit { font-size: 0.5rem; color: rgba(240,236,228,0.2); text-align: right; padding: 3px 2px 0; }
+
+  .sheet-desc { font-size: 0.77rem; color: rgba(240,236,228,0.45); line-height: 1.7; margin-bottom: 14px; padding: 13px 15px; background: #141414; border-radius: 13px; border: 1px solid rgba(201,169,110,0.08); }
+
+  /* Gold line separator */
+  .sheet-divider { height: 1px; background: linear-gradient(to right, transparent, rgba(201,169,110,0.2), transparent); margin-bottom: 16px; }
+
+  .cta-row { display: flex; gap: 10px; margin-bottom: 28px; }
+  .cta-btn { flex: 1; padding: 14px 10px; border-radius: 15px; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.74rem; font-weight: 500; cursor: pointer; text-align: center; transition: all 0.2s; letter-spacing: 0.04em; }
+  .cta-primary { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #080808; box-shadow: 0 4px 20px rgba(201,169,110,0.25); }
+  .cta-primary:hover { box-shadow: 0 6px 28px rgba(201,169,110,0.4); }
+  .cta-secondary { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid rgba(201,169,110,0.2); }
+  .cta-icon { display: block; font-size: 1rem; margin-bottom: 3px; }
+  .affiliate-badge { display: flex; align-items: center; justify-content: center; gap: 5px; background: rgba(201,169,110,0.07); border: 1px solid rgba(201,169,110,0.15); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.05em; }
+  .affiliate-badge span { color: var(--gold); }
+
+  .close-btn { position: absolute; top: 18px; right: 18px; width: 28px; height: 28px; background: rgba(201,169,110,0.1); border: 1px solid rgba(201,169,110,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.75rem; color: var(--gold); z-index: 10; }
+
+  .home-bar { height: 34px; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+  .home-indicator { width: 130px; height: 4px; background: rgba(201,169,110,0.2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="notch"><div class="notch-sensor"></div><div class="notch-cam"></div></div>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons"><span>●●●</span><span>5G</span><span>🔋</span></div>
+  </div>
+
+  <div class="app-content">
+    <div class="overlay" id="overlay" onclick="closeSheet()"></div>
+
+    <!-- BOTTOM SHEET -->
+    <div class="bottom-sheet" id="bottomSheet">
+      <div class="sheet-handle"></div>
+      <div class="close-btn" onclick="closeSheet()">✕</div>
+      <div class="sheet-photo" id="sheetPhotoWrap">
+        <div class="sheet-photo-overlay"></div>
+        <div class="photo-badge" id="sheetBadge"></div>
+        <div class="photo-dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>
+      <div class="sheet-body">
+        <div class="sheet-top-row">
+          <div class="sheet-name" id="sheetName"></div>
+          <div class="sheet-stars" id="sheetStars"></div>
+        </div>
+        <div class="sheet-type" id="sheetType"></div>
+        <div class="sheet-tags" id="sheetTags"></div>
+        <div class="info-section">
+          <div class="info-row"><div class="info-icon">📍</div><div style="flex:1"><div class="info-label">Indirizzo</div><div class="info-value" id="sheetAddr"></div></div></div>
+          <div class="info-row"><div class="info-icon">🕐</div><div style="flex:1"><div class="info-label" id="sheetTimeLabel">Orario</div><div class="info-value" id="sheetTime"></div></div></div>
+          <div class="info-row"><div class="info-icon">🌐</div><div style="flex:1"><div class="info-label">Sito ufficiale</div><div class="info-value" id="sheetWebsite" style="color:var(--gold);text-decoration:underline;text-decoration-style:dotted;cursor:pointer"></div></div><div style="font-size:0.7rem;color:rgba(201,169,110,0.3)">›</div></div>
+          <div class="info-row"><div class="info-icon">🔗</div><div style="flex:1"><div class="info-label">Disponibilità</div><div class="info-value" id="sheetStatus" style="color:var(--gold)"></div></div></div>
+          <div class="info-row"><div class="info-icon">💶</div><div style="flex:1"><div class="info-label">Prezzo</div><div class="info-value" id="sheetPrice"></div></div></div>
+        </div>
+        <div class="map-section">
+          <div class="map-label">📍 Posizione · <span>OpenStreetMap</span></div>
+          <div class="map-tap-overlay" id="mapTapOverlay">
+            <img id="osm-map" src="" alt="Mappa posizione"/>
+          </div>
+          <div class="map-credit">© OpenStreetMap contributors · gratuito e senza limiti</div>
+        </div>
+        <div class="sheet-divider"></div>
+        <div class="sheet-desc" id="sheetDesc"></div>
+        <div class="affiliate-badge">✦ Link affiliato · <span>commissione senza costo aggiuntivo per l'utente</span></div>
+        <div class="cta-row">
+          <button class="cta-btn cta-primary" id="sheetCta1"><span class="cta-icon" id="sheetCta1Icon">🌐</span><span id="sheetCta1Text">Prenota ora</span></button>
+          <button class="cta-btn cta-secondary" id="sheetNavBtn">↗ Naviga</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN SCROLL -->
+    <div class="scroll-area">
+
+      <!-- HEADER -->
+      <div class="app-header">
+        <div class="logo-wrap">
+          <div class="logo-circle"><div class="logo-a">A</div></div>
+          <div class="logo-text">
+            <div class="logo-name"><span>Aurea</span> Atlas</div>
+          </div>
+        </div>
+        <div class="lang-row">
+          <div class="lang-pill">EN</div>
+          <div class="lang-pill active">IT</div>
+          <div class="lang-pill">FR</div>
+          <div class="lang-pill">中文</div>
+          <div class="lang-pill">عر</div>
+        </div>
+      </div>
+
+      <!-- SEARCH -->
+      <div class="search-section">
+        <div class="search-wrap">
+          <span class="search-icon">✦</span>
+          <input class="search-text" id="searchInput" onkeydown="if(event.key==='Enter')startSearch()" type="text" placeholder="Città, quartiere..." value="Perugia, centro città" autocomplete="off"/>
+          <div class="search-btn" id="searchBtn" onclick="startSearch()">Esplora</div>
+        </div>
+      </div>
+
+      <!-- TAGLINE -->
+      <div class="tagline">5 hotels · 5 restaurants · 5 experiences · everywhere</div>
+
+      <!-- SUGGESTION PILLS -->
+      <div class="pills-row">
+        <div class="pill">Tokyo, Shinjuku</div>
+        <div class="pill">Paris, Montmartre</div>
+        <div class="pill">New York, SoHo</div>
+        <div class="pill">Roma, Trastevere</div>
+      </div>
+
+      <div class="gold-divider"></div>
+
+      <!-- RESULTS HEADER -->
+      <div class="result-header">
+        <div class="result-title">Risultati per <span>Perugia, Centro</span></div>
+        <div class="result-meta">5 Hotels · 5 Ristoranti · 5 Esperienze</div>
+      </div>
+
+      <!-- CAT TABS -->
+      <div class="cat-tabs">
+        <div class="cat-tab active"><span class="cat-tab-icon">🏨</span>Hotel</div>
+        <div class="cat-tab"><span class="cat-tab-icon">🍽</span>Ristoranti</div>
+        <div class="cat-tab"><span class="cat-tab-icon">✨</span>Esperienze</div>
+      </div>
+
+      <!-- CARDS -->
+      <div class="cards-section">
+        <div class="section-label"><span class="sec-icon">🏨</span><span class="sec-title">Hotel</span></div>
+        <div class="tap-hint">✦ Tocca una scheda per i dettagli</div>
+
+        <div class="card" onclick="openSheet('h1')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">★★★★★</div></div>
+          <div class="card-body"><div class="card-num">01</div><div class="card-name">Brufani Palace Hotel</div><div class="card-sub">Gran Lusso · Storico dal 1884</div><div class="card-stars">★★★★★</div><div class="card-desc">Piscina su vetro sopra scavi etruschi, vista sulla valle umbra.</div><span class="card-tag">Lusso</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('h2')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">★★★★</div></div>
+          <div class="card-body"><div class="card-num">02</div><div class="card-name">Hotel La Rosetta</div><div class="card-sub">Charme · Centro storico</div><div class="card-stars">★★★★</div><div class="card-desc">Palazzo storico affacciato su Piazza Italia, gestione familiare.</div><span class="card-tag">Charme</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('h3')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">★★★★</div></div>
+          <div class="card-body"><div class="card-num">03</div><div class="card-name">Palazzo Graziani Suites</div><div class="card-sub">Boutique · Design contemporaneo</div><div class="card-stars">★★★★</div><div class="card-desc">Palazzo medievale con suite minimaliste e terrazze sul Duomo.</div><span class="card-tag">Boutique</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('h4')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">★★★</div></div>
+          <div class="card-body"><div class="card-num">04</div><div class="card-name">Hotel Fortuna</div><div class="card-sub">Classico · Ottimo rapporto qualità</div><div class="card-stars">★★★</div><div class="card-desc">Posizione centrale, 100m dal Corso Vannucci.</div><span class="card-tag">Classico</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('h5')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">★★★</div></div>
+          <div class="card-body"><div class="card-num">05</div><div class="card-name">Ostello della Gioventù</div><div class="card-sub">Budget · Panoramico</div><div class="card-stars">★★★</div><div class="card-desc">Vista sulla Rocca Paolina, camere private disponibili.</div><span class="card-tag">Budget</span></div>
+        </div>
+
+        <div class="section-label"><span class="sec-icon">🍽</span><span class="sec-title">Ristoranti</span></div>
+
+        <div class="card" onclick="openSheet('r1')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">€€€</div></div>
+          <div class="card-body"><div class="card-num">01</div><div class="card-name">Il Falchetto</div><div class="card-sub">Cucina umbra · Tartufo nero</div><div class="card-stars">★★★★★</div><div class="card-desc">Il ristorante più amato di Perugia dal 1941, tartufo di Norcia.</div><span class="card-tag">€€€</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('r2')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">€€</div></div>
+          <div class="card-body"><div class="card-num">02</div><div class="card-name">Osteria del Gambero</div><div class="card-sub">Trattoria · Vini naturali</div><div class="card-stars">★★★★</div><div class="card-desc">Strangozzi al tartufo e cinghiale, 200 etichette umbre.</div><span class="card-tag">€€</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('r3')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">€</div></div>
+          <div class="card-body"><div class="card-num">03</div><div class="card-name">Pasticceria Sandri</div><div class="card-sub">Storica · Dal 1860</div><div class="card-stars">★★★★★</div><div class="card-desc">La pasticceria più antica dell'Umbria sul Corso Vannucci.</div><span class="card-tag">€</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('r4')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">€€</div></div>
+          <div class="card-body"><div class="card-num">04</div><div class="card-name">Ristorante dal Mi' Cocco</div><div class="card-sub">Umbro · Conviviale</div><div class="card-stars">★★★★</div><div class="card-desc">Menu fisso, tavolate condivise e atmosfera autentica perugina.</div><span class="card-tag">€€</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('r5')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">€€€</div></div>
+          <div class="card-body"><div class="card-num">05</div><div class="card-name">Ristorante La Taverna</div><div class="card-sub">Fine dining · Cantina medievale</div><div class="card-stars">★★★★</div><div class="card-desc">Cucina creativa umbra in cantina del '300, km zero.</div><span class="card-tag">€€€</span></div>
+        </div>
+
+        <div class="section-label"><span class="sec-icon">✨</span><span class="sec-title">Esperienze</span></div>
+
+        <div class="card" onclick="openSheet('e1')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">Imperdibile</div></div>
+          <div class="card-body"><div class="card-num">01</div><div class="card-name">Fontana Maggiore</div><div class="card-sub">Simbolo di Perugia · XIII sec.</div><div class="card-stars">★★★★★</div><div class="card-desc">Capolavoro gotico del 1278, bassorilievi di Nicola e Giovanni Pisano.</div><span class="card-tag">Monumento</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('e2')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">Unico</div></div>
+          <div class="card-body"><div class="card-num">02</div><div class="card-name">Rocca Paolina</div><div class="card-sub">Città sotterranea · Rinascimentale</div><div class="card-stars">★★★★★</div><div class="card-desc">Città medievale sepolta sotto la fortezza papale, scale mobili gratuite.</div><span class="card-tag">Unico</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('e3')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">Museo</div></div>
+          <div class="card-body"><div class="card-num">03</div><div class="card-name">Galleria Nazionale dell'Umbria</div><div class="card-sub">Perugino · Pinturicchio</div><div class="card-stars">★★★★★</div><div class="card-desc">La più importante raccolta d'arte umbra nel Palazzo dei Priori.</div><span class="card-tag">Museo</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('e4')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">Vita locale</div></div>
+          <div class="card-body"><div class="card-num">04</div><div class="card-name">Corso Vannucci al tramonto</div><div class="card-sub">Passeggiata · Aperitivo umbro</div><div class="card-stars">★★★★</div><div class="card-desc">La passeggiata serale più bella dell'Umbria con aperitivo e musica.</div><span class="card-tag">Esperienza</span></div>
+        </div>
+
+        <div class="card" onclick="openSheet('e5')">
+          <div class="card-photo"><div class="card-photo-placeholder"></div><div class="card-photo-overlay"></div><div class="card-photo-badge">Goloso</div></div>
+          <div class="card-body"><div class="card-num">05</div><div class="card-name">Tour del Cioccolato Perugina</div><div class="card-sub">Degustazione · Baci Perugina</div><div class="card-stars">★★★★</div><div class="card-desc">Fabbrica storica Perugina con laboratorio e degustazione dal 1907.</div><span class="card-tag">Food Tour</span></div>
+        </div>
+
+        <div style="height:30px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="home-bar"><div class="home-indicator"></div></div>
+</div>
+
+<script>
+// Foto reali disponibili nella versione con API Booking
+// Per ora: placeholder eleganti per categoria
+const placeholderIcons = {
+  h1:'🏨', h2:'🏨', h3:'🏨', h4:'🏨', h5:'🏨',
+  r1:'🍽', r2:'🍽', r3:'☕', r4:'🍽', r5:'🍽',
+  e1:'⛲', e2:'🏰', e3:'🖼', e4:'🌆', e5:'🍫'
+};
+const placeholderLabels = {
+  h1:'Gran Lusso', h2:'Charme', h3:'Boutique', h4:'Classico', h5:'Budget',
+  r1:'Cucina Umbra', r2:'Trattoria', r3:'Pasticceria', r4:'Trattoria', r5:'Fine Dining',
+  e1:'Monumento', e2:'Città Sotterranea', e3:'Museo d\'Arte', e4:'Passeggiata', e5:'Food Tour'
+};
+
+// AFFILIATE IDs (sostituisci con i tuoi reali dopo la registrazione)
+// Sistema placeholder per categoria — funziona per qualsiasi città del mondo
+function getPlaceholder(id) {
+  const cat = id.charAt(0);
+  const num = parseInt(id.charAt(1));
+  const idx = Math.min(num - 1, 4);
+
+  const hotelIcons  = ['🏛','🏩','🏨','🛎','🏠'];
+  const hotelLabels = ['Gran Lusso','Charme','Boutique','Classico','Budget'];
+  const hotelBg     = ['linear-gradient(135deg,#0f0b04,#1e1508,#0f0b04)','linear-gradient(135deg,#0b0f0e,#0d1e1a,#0b0f0e)','linear-gradient(135deg,#0c0b10,#15121e,#0c0b10)','linear-gradient(135deg,#0f0f0f,#1a1a1a,#0f0f0f)','linear-gradient(135deg,#0a0d0f,#111820,#0a0d0f)'];
+
+  const restIcons  = ['🍷','🍝','☕','🥘','🍽'];
+  const restLabels = ['Fine Dining','Trattoria','Caffè Storico','Cucina Locale','Ristorante'];
+  const restBg     = ['linear-gradient(135deg,#100808,#1e0d0d,#100808)','linear-gradient(135deg,#0e0c06,#1a1508,#0e0c06)','linear-gradient(135deg,#0d0905,#1a1008,#0d0905)','linear-gradient(135deg,#080e08,#0d1a0d,#080e08)','linear-gradient(135deg,#0a0a10,#12121e,#0a0a10)'];
+
+  const expIcons  = ['🏛','🗺','🖼','🌆','✨'];
+  const expLabels = ['Monumento','Luogo Storico','Museo','Esperienza','Attività'];
+  const expBg     = ['linear-gradient(135deg,#080d10,#0d1520,#080d10)','linear-gradient(135deg,#0d0a10,#15101e,#0d0a10)','linear-gradient(135deg,#0a0d08,#121a0d,#0a0d08)','linear-gradient(135deg,#100d08,#1e1808,#100d08)','linear-gradient(135deg,#0f0810,#1a0d1e,#0f0810)'];
+
+  if (cat === 'h') return { icon: hotelIcons[idx], label: hotelLabels[idx], bg: hotelBg[idx] };
+  if (cat === 'r') return { icon: restIcons[idx],  label: restLabels[idx],  bg: restBg[idx]  };
+  if (cat === 'e') return { icon: expIcons[idx],   label: expLabels[idx],   bg: expBg[idx]   };
+  return { icon: '✦', label: 'Aurea Atlas', bg: 'linear-gradient(135deg,#0f0d08,#1c1608,#0f0d08)' };
+}
+
+const BOOKING_AID = 'TUOID_BOOKING';   // affiliate.booking.com
+const THEFORK_AID = 'TUOID_THEFORK';  // thefork.com/affiliazione
+const GYG_AID    = 'TUOID_GYG';       // partner.getyourguide.com
+
+function bookingUrl(hotelName, city) {
+  // Cerca l'hotel per nome e città - link sempre valido
+  const query = encodeURIComponent(hotelName + ' ' + city);
+  return 'https://www.booking.com/search.html?ss='+query+'&aid='+BOOKING_AID+'&label=aurea-atlas';
+}
+function theforkUrl(restaurantName, city) {
+  // Cerca il ristorante per nome nella città - evita pagine inesistenti
+  const query = encodeURIComponent(restaurantName + ' ' + city);
+  return 'https://www.thefork.it/cerca?q='+query;
+}
+function gygUrl(activityName, city) {
+  const query = encodeURIComponent(activityName + ' ' + (city||''));
+  return 'https://www.getyourguide.it/s/?q='+query+'&partner_id='+GYG_AID;
+}
+function mapsUrl(lat, lng, name) {
+  return 'https://www.openstreetmap.org/?mlat='+lat+'&mlon='+lng+'#map=17/'+lat+'/'+lng;
+}
+
+const data = {
+  h1: { img:'https://images.unsplash.com/photo-1555992336-03a23c7b20ee?w=800&q=80', badge:'★★★★★', name:'Brufani Palace Hotel', stars:'★★★★★', type:'Gran Lusso · Storico dal 1884', tags:['Lusso','Vista Valle','Piscina Panoramica'], addr:'Piazza Italia 12, 06121 Perugia', timeLabel:'Check-in / Check-out', time:'Check-in 15:00 · Check-out 12:00', status:'Verifica su Booking →', price:'da €220 / notte', website:'https://www.brufanipalace.com', websiteDisplay:'www.brufanipalace.com', lat:43.1118, lng:12.3880, desc:'Il Brufani Palace è il grand hotel più prestigioso dell\'Umbria, fondato nel 1884. Affacciato sulla Piazza Italia con vista mozzafiato sulla valle umbra, ospita una piscina panoramica su vetro direttamente sopra gli scavi etruschi. Eleganza senza tempo nel cuore medievale di Perugia.', cta1:'🏨', cta1t:'Prenota su Booking', affiliate: () => bookingUrl('Brufani Palace Hotel', 'Perugia') },
+  h2: { img:'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80', badge:'★★★★', name:'Hotel La Rosetta', stars:'★★★★', type:'Charme · Palazzo Storico', tags:['Charme','Famiglia','Centro Storico'], addr:'Piazza Italia 19, 06121 Perugia', timeLabel:'Check-in / Check-out', time:'Check-in 14:00 · Check-out 11:00', status:'Verifica su Booking →', price:'da €95 / notte', website:'https://www.larosettaperugia.it', websiteDisplay:'www.larosettaperugia.it', lat:43.1120, lng:12.3885, desc:'Hotel La Rosetta occupa un elegante palazzo ottocentesco affacciato su Piazza Italia. Gestione familiare da tre generazioni, ristorante interno con cucina umbra autentica e camere arredate con mobili d\'epoca. Un classico perugino nel cuore pulsante della città.', cta1:'🏨', cta1t:'Prenota su Booking', affiliate: () => bookingUrl('Hotel La Rosetta', 'Perugia') },
+  h3: { img:'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80', badge:'★★★★', name:'Palazzo Graziani Suites', stars:'★★★★', type:'Boutique · Design Contemporaneo', tags:['Boutique','Design','Vista Duomo'], addr:'Via dei Priori 34, 06123 Perugia', timeLabel:'Check-in / Check-out', time:'Check-in 15:00 · Check-out 12:00', status:'Verifica su Booking →', price:'da €130 / notte', website:'https://www.palazzograziani.it', websiteDisplay:'www.palazzograziani.it', lat:43.1108, lng:12.3868, desc:'Palazzo medievale del XIV secolo completamente restaurato. Le 8 suite sono arredate in stile minimalista contemporaneo con tocchi storici. Le terrazze private offrono vista spettacolare sul Duomo di San Lorenzo e sui tetti medievali di Perugia.', cta1:'🏨', cta1t:'Prenota su Booking', affiliate: () => bookingUrl('Palazzo Graziani Suites', 'Perugia') },
+  h4: { img:'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&q=80', badge:'★★★', name:'Hotel Fortuna', stars:'★★★', type:'Classico · Ottimo Rapporto Qualità', tags:['Classico','Centrale','WiFi Gratis'], addr:'Via Bonazzi 19, 06123 Perugia', timeLabel:'Check-in / Check-out', time:'Check-in 13:00 · Check-out 11:00', status:'Verifica su Booking →', price:'da €65 / notte', website:'https://www.hotelfortuna.it', websiteDisplay:'www.hotelfortuna.it', lat:43.1115, lng:12.3875, desc:'Hotel Fortuna è la scelta ideale per chi cerca comfort a prezzi ragionevoli nel centro storico di Perugia. A soli 100 metri dal Corso Vannucci. Colazione abbondante inclusa con prodotti locali umbri ogni mattina.', cta1:'🏨', cta1t:'Prenota su Booking', affiliate: () => bookingUrl('Hotel Fortuna', 'Perugia') },
+  h5: { img:'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&q=80', badge:'★★★', name:'Ostello della Gioventù', stars:'★★★', type:'Budget · Panoramico · Conviviale', tags:['Budget','Camere Private','Terrazza'], addr:'Via Bontempi 13, 06123 Perugia', timeLabel:'Check-in / Check-out', time:'Check-in 16:00 · Check-out 10:00', status:'Verifica su Booking →', price:'da €28 / notte', website:'https://www.ostelloperugia.it', websiteDisplay:'www.ostelloperugia.it', lat:43.1105, lng:12.3890, desc:'L\'ostello più panoramico di Perugia, vicino alla Rocca Paolina. Offre sia dormitori che camere private. Terrazza comune con vista sulla campagna umbra e atmosfera internazionale.', cta1:'🏨', cta1t:'Prenota su Booking', affiliate: () => bookingUrl('Ostello della Gioventu', 'Perugia') },
+  r1: { img:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80', badge:'€€€', name:'Il Falchetto', stars:'★★★★★', type:'Cucina Umbra · Tartufo Nero di Norcia', tags:['Dal 1941','Tartufo','Vini Umbri'], addr:'Via Bartolo 20, 06122 Perugia', timeLabel:'Orario', time:'12:30–14:30 · 19:30–22:30', status:'Prenota il tuo tavolo →', price:'€35–55 a persona', website:'https://www.ilfalchetto.it', websiteDisplay:'www.ilfalchetto.it', lat:43.1112, lng:12.3878, desc:'Fondato nel 1941, Il Falchetto è il ristorante più amato di Perugia. Specializzato nella cucina umbra tradizionale con accento sul tartufo nero di Norcia. Gli strangozzi al tartufo sono diventati leggendari in tutta la regione.', cta1:'🍽', cta1t:'Prenota su TheFork', affiliate: () => theforkUrl('Il Falchetto', 'Perugia') },
+  r2: { img:'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80', badge:'€€', name:'Osteria del Gambero', stars:'★★★★', type:'Trattoria · Vini Naturali Umbri', tags:['Vini Naturali','Km Zero','Conviviale'], addr:'Via Baldeschi 17, 06123 Perugia', timeLabel:'Orario', time:'12:00–15:00 · 19:00–23:00', status:'Prenota il tuo tavolo →', price:'€22–38 a persona', website:'https://www.osteriadelgambero.it', websiteDisplay:'www.osteriadelgambero.it', lat:43.1116, lng:12.3882, desc:'Osteria autentica nel centro storico, frequentata da perugini e studenti. La cantina vanta oltre 200 etichette di vini umbri e naturali. Imperdibili gli strangozzi al tartufo e il cinghiale in umido con polenta.', cta1:'🍽', cta1t:'Prenota su TheFork', affiliate: () => theforkUrl('Osteria del Gambero', 'Perugia') },
+  r3: { img:'https://images.unsplash.com/photo-1521305916504-4a1121188589?w=800&q=80', badge:'€', name:'Pasticceria Sandri', stars:'★★★★★', type:'Storica · Pasticceria · Dal 1860', tags:['Dal 1860','Liberty','Colazione'], addr:'Corso Vannucci 32, 06121 Perugia', timeLabel:'Orario', time:'07:30–21:00 tutti i giorni', status:'Nessuna prenotazione necessaria', price:'€3–12 a persona', website:'https://www.caffesandri.it', websiteDisplay:'www.caffesandri.it', lat:43.1122, lng:12.3888, desc:'Un monumento vivente di Perugia aperto dal 1860. Gli interni con affreschi Liberty originali sono patrimonio artistico. Famosa per i maritozzi con panna, i bignè al cioccolato e il caffè preparato con torchio.', cta1:'🗺️', cta1t:'Vedi su mappa', affiliate: (lat,lng) => mapsUrl(lat,lng,'Pasticceria+Sandri+Perugia') },
+  r4: { img:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80', badge:'€€', name:'Ristorante dal Mi\' Cocco', stars:'★★★★', type:'Umbro Tradizionale · Tavolate Condivise', tags:['Menu Fisso','Conviviale','Autentico'], addr:'Corso Garibaldi 12, 06122 Perugia', timeLabel:'Orario', time:'13:00–15:00 · 20:00–23:00', status:'Prenota il tuo tavolo →', price:'€18–25 a persona', website:'https://www.dalmicocco.it', websiteDisplay:'www.dalmicocco.it', lat:43.1130, lng:12.3895, desc:'Un\'istituzione perugina unica: menu fisso che cambia ogni giorno, tavolate condivise dove i commensali diventano amici. Esperienza autentica e genuina, lontana dal turismo di massa.', cta1:'🍽', cta1t:'Prenota su TheFork', affiliate: () => theforkUrl('Dal Mi Cocco', 'Perugia') },
+  r5: { img:'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=800&q=80', badge:'€€€', name:'Ristorante La Taverna', stars:'★★★★', type:'Fine Dining · Cantina Medievale del \'300', tags:['Medievale','Km Zero','Fine Dining'], addr:'Via delle Streghe 8, 06123 Perugia', timeLabel:'Orario', time:'12:30–14:30 · 19:30–22:30', status:'Prenota il tuo tavolo →', price:'€45–70 a persona', website:'https://www.ristorantelataverna.it', websiteDisplay:'www.ristorantelataverna.it', lat:43.1110, lng:12.3870, desc:'Cantina medievale del XIV secolo con volte in pietra originali. Cucina creativa umbra con ingredienti a km zero da piccoli produttori locali. Carta dei vini con oltre 400 etichette umbre e italiane.', cta1:'🍽', cta1t:'Prenota su TheFork', affiliate: () => theforkUrl('La Taverna', 'Perugia') },
+  e1: { img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', badge:'Imperdibile', name:'Fontana Maggiore', stars:'★★★★★', type:'Monumento Gotico · XIII Secolo', tags:['Gratis','1278','Pisano'], addr:'Piazza IV Novembre, 06121 Perugia', timeLabel:'Orario', time:'Sempre accessibile · 24h', status:'Accesso libero e gratuito', price:'Ingresso gratuito', website:'https://www.comune.perugia.it/pagine/fontana-maggiore', websiteDisplay:'www.comune.perugia.it', lat:43.1124, lng:12.3886, desc:'La Fontana Maggiore è il simbolo di Perugia, capolavoro dell\'arte gotica italiana del 1278. I 50 bassorilievi di Nicola e Giovanni Pisano raccontano il calendario agricolo, le arti liberali e scene bibliche. Uno dei monumenti medievali più belli d\'Italia.', cta1:'🗺️', cta1t:'Vedi su mappa', affiliate: (lat,lng) => mapsUrl(lat,lng,'Fontana+Maggiore+Perugia') },
+  e2: { img:'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80', badge:'Unico', name:'Rocca Paolina', stars:'★★★★★', type:'Città Sotterranea · Rinascimentale', tags:['Gratis','Sotterraneo','Scale Mobili'], addr:'Piazza Italia, 06121 Perugia', timeLabel:'Orario', time:'08:00–19:30 tutti i giorni', status:'Accesso libero e gratuito', price:'Ingresso gratuito', website:'https://www.comune.perugia.it/pagine/rocca-paolina', websiteDisplay:'www.comune.perugia.it', lat:43.1112, lng:12.3876, desc:'Una città medievale sepolta viva nel 1540 sotto la fortezza papale di Paolo III. Percorribile attraverso scale mobili gratuite che attraversano vicoli, botteghe e case medievali perfettamente conservate. Un\'esperienza surreale e indimenticabile.', cta1:'🗺️', cta1t:'Vedi su mappa', affiliate: (lat,lng) => mapsUrl(lat,lng,'Rocca+Paolina+Perugia') },
+  e3: { img:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&q=80', badge:'Museo', name:'Galleria Nazionale dell\'Umbria', stars:'★★★★★', type:'Arte Medievale e Rinascimentale', tags:['Perugino','Pinturicchio','Palazzo dei Priori'], addr:'Corso Vannucci 19, 06121 Perugia', timeLabel:'Orario', time:'08:30–19:30 · Chiuso lunedì', status:'Biglietti disponibili →', price:'€8 intero · €4 ridotto', website:'https://www.gallerianazionaleumbria.it', websiteDisplay:'www.gallerianazionaleumbria.it', lat:43.1121, lng:12.3884, desc:'La più importante raccolta d\'arte umbra ospitata nel Palazzo dei Priori. Capolavori di Perugino, Pinturicchio e Duccio di Buoninsegna ripercorrono otto secoli di arte umbra dal Medioevo al Rinascimento.', cta1:'🎟️', cta1t:'Biglietti su GetYourGuide', affiliate: () => gygUrl('Galleria Nazionale Umbria', 'Perugia') },
+  e4: { img:'https://images.unsplash.com/photo-1524338198850-8a2ff63aaceb?w=800&q=80', badge:'Vita Locale', name:'Corso Vannucci al Tramonto', stars:'★★★★', type:'Passeggiata Serale · Aperitivo Umbro', tags:['Gratis','Aperitivo','Arte di Strada'], addr:'Corso Vannucci, 06121 Perugia', timeLabel:'Orario migliore', time:'18:00–21:00 ogni sera', status:'Accesso libero e gratuito', price:'Gratuito', website:'https://www.turismoperugia.it', websiteDisplay:'www.turismopenanzi.it', lat:43.1122, lng:12.3887, desc:'Il salotto di Perugia, una delle passeggiate più belle d\'Italia. Ogni sera si anima di studenti, artisti e perugini per l\'aperitivo. Musica di strada, arte e il profumo dei Baci Perugina nell\'aria umbra.', cta1:'🗺️', cta1t:'Vedi su mappa', affiliate: (lat,lng) => mapsUrl(lat,lng,'Corso+Vannucci+Perugia') },
+  e5: { img:'https://images.unsplash.com/photo-1481026469463-66327c86e544?w=800&q=80', badge:'Goloso', name:'Tour del Cioccolato Perugina', stars:'★★★★', type:'Fabbrica Storica · Degustazione', tags:['Baci Perugina','Laboratorio','Degustazione'], addr:'Via San Sisto 157/a, 06132 Perugia', timeLabel:'Orario tour', time:'10:00–17:00 · Da prenotare', status:'Posti disponibili →', price:'€12 a persona', website:'https://www.perugina.com/it/casa-perugina', websiteDisplay:'www.perugina.com', lat:43.0950, lng:12.4050, desc:'La fabbrica Perugina produce i celebri Baci dal 1907. Il tour porta i visitatori attraverso le linee di produzione storiche con degustazione di cioccolati artigianali e laboratorio per creare i propri Baci personalizzati.', cta1:'🎟️', cta1t:'Prenota su GetYourGuide', affiliate: () => gygUrl('Tour Cioccolato Perugina', 'Perugia') },
+};
+
+function openSheet(id) {
+  const d = getCardData(id);
+
+  // Placeholder elegante basato su categoria
+  const photoWrap = document.getElementById('sheetPhotoWrap');
+  const ph_data = getPlaceholder(id);
+  photoWrap.style.background = ph_data.bg;
+  const oldPh = photoWrap.querySelector('.photo-placeholder');
+  if (oldPh) oldPh.remove();
+  const ph = document.createElement('div');
+  ph.className = 'photo-placeholder';
+  ph.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px';
+  const icon = ph_data.icon;
+  const label = ph_data.label;
+  ph.innerHTML = '<div style="font-size:3rem;opacity:0.55;filter:drop-shadow(0 4px 12px rgba(201,169,110,0.3))">'+icon+'</div>'
+    + '<div style="font-family:Cormorant Garamond,serif;font-size:1rem;color:rgba(201,169,110,0.5);letter-spacing:0.14em;font-style:italic">'+label+'</div>'
+    + '<div style="display:flex;align-items:center;gap:6px;margin-top:6px">'
+    + '<div style="height:1px;width:24px;background:rgba(201,169,110,0.15)"></div>'
+    + '<div style="font-size:0.52rem;color:rgba(201,169,110,0.22);letter-spacing:0.14em;text-transform:uppercase">Foto con API Booking</div>'
+    + '<div style="height:1px;width:24px;background:rgba(201,169,110,0.15)"></div>'
+    + '</div>';
+  photoWrap.appendChild(ph);
+  document.getElementById('sheetBadge').textContent = d.badge;
+  document.getElementById('sheetName').textContent = d.name;
+  document.getElementById('sheetStars').textContent = d.stars;
+  document.getElementById('sheetType').textContent = d.type;
+  document.getElementById('sheetAddr').textContent = d.addr;
+  const websiteEl = document.getElementById('sheetWebsite');
+  websiteEl.textContent = d.websiteDisplay || '—';
+  websiteEl.onclick = d.website ? () => window.open(d.website, '_blank') : null;
+  document.getElementById('sheetTimeLabel').textContent = d.timeLabel;
+  document.getElementById('sheetTime').textContent = d.time;
+  document.getElementById('sheetStatus').textContent = d.status;
+  document.getElementById('sheetPrice').textContent = d.price;
+  document.getElementById('sheetDesc').textContent = d.desc;
+  document.getElementById('sheetCta1Icon').textContent = d.cta1;
+  document.getElementById('sheetCta1Text').textContent = d.cta1t;
+  document.getElementById('sheetTags').innerHTML = d.tags.map(t => `<span class="sh-tag">${t}</span>`).join('');
+
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('bottomSheet').classList.add('open');
+
+  // Wire up affiliate CTA button
+  const cta1btn = document.getElementById('sheetCta1');
+  cta1btn.onclick = () => {
+    const url = d.affiliate ? d.affiliate(d.lat, d.lng) : '#';
+    window.open(url, '_blank');
+  };
+  const navBtn = document.getElementById('sheetNavBtn');
+  navBtn.onclick = () => {
+    window.open('https://www.openstreetmap.org/?mlat='+d.lat+'&mlon='+d.lng+'#map=16/'+d.lat+'/'+d.lng, '_blank');
+  };
+
+    setTimeout(() => {
+    const overlay = document.getElementById('mapTapOverlay');
+    if (!overlay) return;
+    const lat = d.lat, lng = d.lng, addr = d.addr;
+    const div = document.createElement('div');
+    div.style.cssText = 'width:100%;height:130px;border-radius:14px;background:linear-gradient(135deg,#0d1117,#0f1a2a,#0d1117);border:1px solid rgba(201,169,110,0.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer';
+    div.innerHTML = '<div style="font-size:2rem">📍</div>'
+      + '<div style="font-size:0.7rem;color:rgba(201,169,110,0.7);font-family:sans-serif;text-align:center;padding:0 16px">' + addr + '</div>'
+      + '<div style="font-size:0.55rem;color:rgba(201,169,110,0.35);font-family:sans-serif;text-transform:uppercase;letter-spacing:0.1em">↗ Apri in OpenStreetMap</div>';
+    div.onclick = function() {
+      window.open('https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lng + '#map=16/' + lat + '/' + lng, '_blank');
+    };
+    overlay.innerHTML = '';
+    overlay.appendChild(div);
+  }, 200);
+}
+
+
+
+// Colora le card placeholder per categoria al caricamento
+function initCardPlaceholders() {
+  const cards = document.querySelectorAll('.card');
+  const ids = ['h1','h2','h3','h4','h5','r1','r2','r3','r4','r5','e1','e2','e3','e4','e5'];
+  cards.forEach((card, i) => {
+    const id = ids[i];
+    if (!id) return;
+    const ph_data = getPlaceholder(id, '');
+    const placeholder = card.querySelector('.card-photo-placeholder');
+    if (placeholder) {
+      placeholder.style.background = ph_data.bg;
+      placeholder.style.display = 'flex';
+      placeholder.style.alignItems = 'center';
+      placeholder.style.justifyContent = 'center';
+      placeholder.innerHTML = `<span style="font-size:1.8rem;opacity:0.35;filter:drop-shadow(0 2px 6px rgba(201,169,110,0.2))">${ph_data.icon}</span>`;
+    }
+  });
+}
+window.addEventListener('load', initCardPlaceholders);
+
+function closeSheet() {
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('bottomSheet').classList.remove('open');
+}
+
+const GEMINI_KEY = 'AIzaSyB9Mtlu51ca3G38FD7Y-b7dF1VwGfGd__o';
+
+async function startSearch() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (!query) return;
+
+  // Show loading state
+  const btn = document.getElementById('searchBtn');
+  btn.textContent = '...';
+  btn.style.opacity = '0.6';
+
+  // Update result header
+  document.querySelector('.result-title').innerHTML = 'Risultati per <span>' + query + '</span>';
+  document.querySelector('.cards-section').innerHTML = '<div style="text-align:center;padding:40px 20px"><div style="font-size:2rem;margin-bottom:12px">✦</div><div style="font-family:Cormorant Garamond,serif;font-size:1rem;color:rgba(201,169,110,0.6);font-style:italic">Gemini AI sta cercando i migliori posti...</div></div>';
+
+  const prompt = `Sei un concierge di viaggio di lusso. L'utente cerca: "${query}".
+Rispondi SOLO con un JSON valido, senza markdown, senza backtick, nel formato esatto:
+{
+  "hotels": [
+    {"num":"01","name":"Nome Hotel","type":"Categoria · Dettaglio","stars":"★★★★★","badge":"★★★★★","price":"da €X / notte","addr":"Indirizzo completo","checkin":"Check-in HH:MM · Check-out HH:MM","status":"Verifica su Booking →","website":"https://...","desc":"Descrizione 2 righe","tags":["tag1","tag2","tag3"],"lat":0.0,"lng":0.0,"booking":"Nome Hotel Città"},
+    ... 5 hotel totali
+  ],
+  "restaurants": [
+    {"num":"01","name":"Nome Ristorante","type":"Cucina · Dettaglio","stars":"★★★★★","badge":"€€€","price":"€XX-XX a persona","addr":"Indirizzo","orario":"HH:MM-HH:MM · HH:MM-HH:MM","status":"Prenota il tuo tavolo →","website":"https://...","desc":"Descrizione 2 righe","tags":["tag1","tag2","tag3"],"lat":0.0,"lng":0.0,"thefork":"Nome Ristorante Città"},
+    ... 5 ristoranti totali
+  ],
+  "experiences": [
+    {"num":"01","name":"Nome Esperienza","type":"Categoria · Dettaglio","stars":"★★★★★","badge":"Imperdibile","price":"€X o Gratuito","addr":"Indirizzo","orario":"HH:MM-HH:MM","status":"Accesso libero","website":"https://...","desc":"Descrizione 2 righe","tags":["tag1","tag2","tag3"],"lat":0.0,"lng":0.0,"gyg":"Nome Esperienza Città"},
+    ... 5 esperienze totali
+  ]
+}
+Usa dati REALI e VERIFICATI. Tutti i campi devono essere compilati. Solo JSON puro.`;
+
+  try {
+    const res = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY,
+      {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 4000 }
+        })
+      }
+    );
+    const data = await res.json();
+    let text = data.candidates[0].content.parts[0].text;
+    // Clean JSON aggressively
+    text = text.replace(/```json/g,'').replace(/```/g,'').trim();
+    // Find JSON object boundaries
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start === -1 || end === -1) throw new Error('No JSON found in response');
+    text = text.substring(start, end + 1);
+    const result = JSON.parse(text);
+    if (!result.hotels || !result.restaurants || !result.experiences) throw new Error('Struttura JSON non valida');
+    renderResults(result, query);
+  } catch(e) {
+    console.error('Gemini error:', e);
+    let msg = 'Errore nella ricerca. ';
+    if (e.message && e.message.includes('fetch')) {
+      msg += 'Problema di connessione — apri questo file tramite un server web (es. Netlify) invece che direttamente dai Download.';
+    } else {
+      msg += e.message || 'Riprova.';
+    }
+    document.querySelector('.cards-section').innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(201,169,110,0.5);font-size:0.8rem;line-height:1.6">⚠️ ' + msg + '</div>';
+  }
+
+  btn.textContent = 'Esplora';
+  btn.style.opacity = '1';
+}
+
+function renderResults(data, query) {
+  const catPrefix = {'hotels':'h','restaurants':'r','experiences':'e'};
+  const catKeys = ['hotels','restaurants','experiences'];
+  const catLabels = [{'icon':'🏨','title':'Hotel'},{'icon':'🍽','title':'Ristoranti'},{'icon':'✨','title':'Esperienze'}];
+
+  let html = '';
+  catKeys.forEach((cat, ci) => {
+    const items = data[cat] || [];
+    const prefix = catPrefix[cat];
+    html += '<div class="section-label"><span class="sec-icon">'+catLabels[ci].icon+'</span><span class="sec-title">'+catLabels[ci].title+'</span></div>';
+    items.forEach((item, i) => {
+      const id = prefix + (i+1);
+      // Store in dynamic data
+      dynamicData[id] = {
+        badge: item.badge, name: item.name, stars: item.stars,
+        type: item.type, tags: item.tags || [],
+        addr: item.addr,
+        timeLabel: cat === 'hotels' ? 'Check-in / Check-out' : 'Orario',
+        time: cat === 'hotels' ? (item.checkin||'') : (item.orario||''),
+        status: item.status, price: item.price,
+        website: item.website, websiteDisplay: (item.website||'').replace('https://','').replace('http://','').split('/')[0],
+        lat: item.lat || 0, lng: item.lng || 0,
+        desc: item.desc,
+        cta1: cat === 'hotels' ? '🏨' : cat === 'restaurants' ? '🍽' : '🎟️',
+        cta1t: cat === 'hotels' ? 'Prenota su Booking' : cat === 'restaurants' ? 'Prenota su TheFork' : 'Cerca su GetYourGuide',
+        affiliate: cat === 'hotels'
+          ? () => 'https://www.booking.com/search.html?ss='+encodeURIComponent((item.booking||item.name)+' '+query)+'&aid='+BOOKING_AID
+          : cat === 'restaurants'
+          ? () => 'https://www.thefork.it/cerca?q='+encodeURIComponent((item.thefork||item.name)+' '+query)
+          : () => 'https://www.getyourguide.it/s/?q='+encodeURIComponent((item.gyg||item.name)+' '+query)
+      };
+      const ph = getPlaceholder(id);
+      const itemBadge = item.badge || '';
+      const itemName = item.name || '';
+      const itemType = item.type || '';
+      const itemStars = item.stars || '★★★★';
+      const itemDesc = item.desc || '';
+      const itemTag = (item.tags && item.tags[0]) ? item.tags[0] : '';
+      const itemNum = item.num || String(i+1).padStart(2,'0');
+      html += '<div class="card" onclick="openSheet(\''+id+'\')">'
+        + '<div class="card-photo"><div class="card-photo-placeholder" style="background:'+ph.bg+';display:flex;align-items:center;justify-content:center"><span style="font-size:1.8rem;opacity:0.35">'+ph.icon+'</span></div><div class="card-photo-overlay"></div><div class="card-photo-badge">'+itemBadge+'</div></div>'
+        + '<div class="card-body"><div class="card-num">'+itemNum+'</div><div class="card-name">'+itemName+'</div><div class="card-sub">'+itemType+'</div><div class="card-stars">'+itemStars+'</div><div class="card-desc">'+itemDesc+'</div><span class="card-tag">'+itemTag+'</span></div>'
+        + '</div>';
+    });
+  });
+  document.querySelector('.cards-section').innerHTML = html;
+}
+
+// Dynamic data store for Gemini results
+const dynamicData = {};
+
+// Override openSheet to check dynamicData first
+const _originalData = data;
+function getCardData(id) {
+  return dynamicData[id] || _originalData[id];
+}
+
+</script>
+</body>
+</html>
